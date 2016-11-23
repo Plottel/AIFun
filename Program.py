@@ -10,14 +10,13 @@ clock = pygame.time.Clock()
 pygame.init()
 Input.init()
 
-
 if __name__ == "__main__":
     rect = Rect(50, 50, 50, 50)
     dx = 0
     dy = 0
     speed = 1
 
-    tileset = Tileset(50, 50, 5, 5)
+    tileset = Tileset(50, 50, 10, 10)
 
     while 1:
         clock.tick(60)
@@ -49,15 +48,23 @@ if __name__ == "__main__":
         if (not Input.key_down(pygame.K_a)) & (not Input.key_down(pygame.K_d)):
             dx = 0
 
+        # Add column to Tileset
         if Input.key_typed(pygame.K_c):
             tileset.add_columns(1)
 
+        # Add row to Tileset
         if Input.key_typed(pygame.K_r):
             tileset.add_rows(1)
 
+        # Make Tile at mouse position not passable
         if Input.left_mouse_down:
-            rect.x = Input.mouse_x()
-            rect.y = Input.mouse_y()
+            if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
+                tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = False
+
+        # Make Tile at mosue position passable
+        if Input.right_mouse_down:
+            if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
+                tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = True
 
         rect.x += dx
         rect.y += dy

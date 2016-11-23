@@ -6,6 +6,7 @@ Rect = pygame.Rect
 class Tile:
     x = 0
     y = 0
+    passable = True
     width = Renderer.TILE_SIZE
     height = Renderer.TILE_SIZE
 
@@ -14,4 +15,7 @@ class Tile:
         self.y = y
 
     def render(self):
-        pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, Rect(self.x, self.y, self.width, self.height), 1)
+        if self.passable:
+            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, Rect(self.x, self.y, self.width, self.height), 1)
+        else:
+            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, Rect(self.x, self.y, self.width, self.height), 0)
