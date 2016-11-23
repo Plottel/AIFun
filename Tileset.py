@@ -1,5 +1,6 @@
 import math
 import pygame
+from pygame.rect import Rect
 from Renderer import Renderer
 from Tile import Tile
 
@@ -37,7 +38,7 @@ class Tileset:
     # Read-only property. Rect is derived from x, y, width, height
     @property
     def rect(self):
-        return pygame.Rect(self.x, self.y, self.width, self.height)
+        return Rect(self.x, self.y, self.width, self.height)
 
     # Initialises the Tileset and adds columns and rows
     def __init__(self, x, y, cols, rows):

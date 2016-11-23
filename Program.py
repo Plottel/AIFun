@@ -3,50 +3,35 @@ from pygame.locals import *
 from Renderer import Renderer
 from Input import Input
 from Tileset import Tileset
+from pygame.rect import Rect
+from TileInteractor import TileInteractor
+from Entity import Entity
+from Pathfinder import Pathfinder
 
-Rect = pygame.Rect
+# This is used for framerate
 clock = pygame.time.Clock()
 
+# This initialises pygame
 pygame.init()
+
+# This initialises keyboard and mouse input
 Input.init()
 
 if __name__ == "__main__":
-    rect = Rect(50, 50, 50, 50)
-    dx = 0
-    dy = 0
-    speed = 1
-
     tileset = Tileset(50, 50, 10, 10)
+    TileInteractor.tileset = tileset
+    entity = Entity(tileset.x, tileset.y)
+
+    path = Pathfinder.get_path(entity, tileset.tiles[5][5])
 
     while 1:
+        # This is how we get our 60 FPS
         clock.tick(60)
+
+        # This is SwinGame.ProcessEvents()
         Input.process_events()
 
-        # VERTICAL MOVEMENT
-        if Input.key_down(pygame.K_w):
-            dy = -speed
-
-        if Input.key_down(pygame.K_s):
-            dy = speed
-
-        if Input.key_down(pygame.K_w) & Input.key_down(pygame.K_s):
-            dy = 0
-
-        if (not Input.key_down(pygame.K_w)) & (not Input.key_down(pygame.K_s)):
-            dy = 0
-
-        # HORIZONTAL MOVEMENT
-        if Input.key_down(pygame.K_a):
-            dx = -speed
-
-        if Input.key_down(pygame.K_d):
-            dx = speed
-
-        if Input.key_down(pygame.K_d) & Input.key_down(pygame.K_a):
-            dx = 0
-
-        if (not Input.key_down(pygame.K_a)) & (not Input.key_down(pygame.K_d)):
-            dx = 0
+        entity.move()
 
         # Add column to Tileset
         if Input.key_typed(pygame.K_c):
@@ -66,14 +51,16 @@ if __name__ == "__main__":
             if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
                 tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = True
 
-        rect.x += dx
-        rect.y += dy
-
+        # This is SwinGame.ClearScreen(Color.White)
         Renderer.clear_screen()
 
         tileset.render()
-        pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, rect, 0)
+        entity.render()
 
+        for tile in path:
+            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLUE, Rect(tile.x + 10, tile.y + 10, 12, 12), 0)
+
+        # This is SwinGame.RefreshScreen()
         pygame.display.flip()
 
 
