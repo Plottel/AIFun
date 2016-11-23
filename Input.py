@@ -42,6 +42,8 @@ class Input:
         Input.add_key(pygame.K_s)
         Input.add_key(pygame.K_a)
         Input.add_key(pygame.K_d)
+        Input.add_key(pygame.K_c)
+        Input.add_key(pygame.K_r)
 
     # Adds a new key to be tracked for input
     @staticmethod

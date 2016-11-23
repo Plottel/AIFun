@@ -1,23 +1,23 @@
 import pygame, sys
 from pygame.locals import *
+from Renderer import Renderer
 from Input import Input
+from Tileset import Tileset
 
 Rect = pygame.Rect
 clock = pygame.time.Clock()
 
 pygame.init()
 Input.init()
-SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-SCREEN = pygame.display.set_mode(SCREEN_SIZE)
 
-black = 0, 0, 0
-white = 255, 255, 255
 
 if __name__ == "__main__":
     rect = Rect(50, 50, 50, 50)
     dx = 0
     dy = 0
     speed = 1
+
+    tileset = Tileset(50, 50, 5, 5)
 
     while 1:
         clock.tick(60)
@@ -49,6 +49,12 @@ if __name__ == "__main__":
         if (not Input.key_down(pygame.K_a)) & (not Input.key_down(pygame.K_d)):
             dx = 0
 
+        if Input.key_typed(pygame.K_c):
+            tileset.add_columns(1)
+
+        if Input.key_typed(pygame.K_r):
+            tileset.add_rows(1)
+
         if Input.left_mouse_down:
             rect.x = Input.mouse_x()
             rect.y = Input.mouse_y()
@@ -56,9 +62,11 @@ if __name__ == "__main__":
         rect.x += dx
         rect.y += dy
 
+        Renderer.clear_screen()
 
-        SCREEN.fill(white)
-        pygame.draw.rect(SCREEN, black, rect, 1)
+        tileset.render()
+        pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, rect, 0)
+
         pygame.display.flip()
 
 
