@@ -1,11 +1,12 @@
 import pygame, sys
 from pygame.locals import *
-from InputMan import InputMan
+from Input import Input
 
 Rect = pygame.Rect
 clock = pygame.time.Clock()
 
 pygame.init()
+Input.init()
 SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 SCREEN = pygame.display.set_mode(SCREEN_SIZE)
 
@@ -20,37 +21,37 @@ if __name__ == "__main__":
 
     while 1:
         clock.tick(60)
-        InputMan.process_events()
+        Input.process_events()
 
         # VERTICAL MOVEMENT
-        if InputMan.w_down:
+        if Input.key_down(pygame.K_w):
             dy = -speed
 
-        if InputMan.s_down:
+        if Input.key_down(pygame.K_s):
             dy = speed
 
-        if InputMan.w_down & InputMan.s_down:
+        if Input.key_down(pygame.K_w) & Input.key_down(pygame.K_s):
             dy = 0
 
-        if (not InputMan.w_down) & (not InputMan.s_down):
+        if (not Input.key_down(pygame.K_w)) & (not Input.key_down(pygame.K_s)):
             dy = 0
 
         # HORIZONTAL MOVEMENT
-        if InputMan.a_down:
+        if Input.key_down(pygame.K_a):
             dx = -speed
 
-        if InputMan.d_down:
+        if Input.key_down(pygame.K_d):
             dx = speed
 
-        if InputMan.a_down & InputMan.d_down:
+        if Input.key_down(pygame.K_d) & Input.key_down(pygame.K_a):
             dx = 0
 
-        if (not InputMan.a_down) & (not InputMan.d_down):
+        if (not Input.key_down(pygame.K_a)) & (not Input.key_down(pygame.K_d)):
             dx = 0
 
-        if InputMan.left_mouse_down:
-            rect.x = InputMan.mouse_x
-            rect.y = InputMan.mouse_y
+        if Input.left_mouse_down:
+            rect.x = Input.mouse_x()
+            rect.y = Input.mouse_y()
 
         rect.x += dx
         rect.y += dy
