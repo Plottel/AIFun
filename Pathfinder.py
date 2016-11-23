@@ -2,7 +2,7 @@ from TileInteractor import TileInteractor
 from Tile import Tile
 import math
 
-
+# Data structure used on top of the Tile grid to provide A* info
 class Node:
     parent = None
     tile = None
@@ -14,6 +14,7 @@ class Node:
 
 class Pathfinder:
 
+    # Returns the node in the open list with the lowest f score
     @staticmethod
     def get_next_current_node(open_list):
         result = None
