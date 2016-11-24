@@ -22,7 +22,7 @@ if __name__ == "__main__":
     TileInteractor.tileset = tileset
     entity = Entity(tileset.x, tileset.y)
 
-    path = Pathfinder.get_path(entity, tileset.tiles[5][5])
+    # path = Pathfinder.get_path(entity, tileset.tiles[5][5])
 
     while 1:
         # This is how we get our 60 FPS
@@ -56,9 +56,6 @@ if __name__ == "__main__":
 
         tileset.render()
         entity.render()
-
-        for tile in path:
-            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLUE, Rect(tile.x + 10, tile.y + 10, 12, 12), 0)
 
         # This is SwinGame.RefreshScreen()
         pygame.display.flip()
