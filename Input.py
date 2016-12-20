@@ -100,29 +100,25 @@ def process_events():
             if event.key in tracked_keys:
                 tracked_keys[event.key][KeyState.Down] = True
                 tracked_keys[event.key][KeyState.Typed] = True
-
         # Key Up event
-        if event.type == pygame.KEYUP:
+        elif event.type == pygame.KEYUP:
             if event.key in tracked_keys:
                 tracked_keys[event.key][KeyState.Down] = False
                 tracked_keys[event.key][KeyState.Released] = True
-
         # Mouse Button Down event
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == __LEFT_MOUSE:
                 left_mouse_down = True
             elif event.button == __RIGHT_MOUSE:
                 right_mouse_down = True
-
         # Mouse Button Up event
-        if event.type == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == __LEFT_MOUSE:
                 left_mouse_clicked = True
                 left_mouse_down = False
             elif event.button == __RIGHT_MOUSE:
                 right_mouse_clicked = True
                 right_mouse_down = False
-
         # Quit event
-        if event.type == pygame.QUIT:
+        elif event.type == pygame.QUIT:
             pygame.quit()
