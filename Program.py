@@ -1,7 +1,7 @@
 import pygame, sys
+import Input
 from pygame.locals import *
 from Renderer import Renderer
-from Input import Input
 from Tileset import Tileset
 from pygame.rect import Rect
 from TileInteractor import TileInteractor

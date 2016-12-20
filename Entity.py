@@ -1,7 +1,7 @@
 import pygame
 from pygame.rect import Rect
 from Renderer import Renderer
-from Input import Input
+import Input
 
 
 class Entity:
