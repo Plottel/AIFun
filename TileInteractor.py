@@ -10,4 +10,4 @@ class TileInteractor:
 
     @staticmethod
     def tile_at(x, y):
-        return TileInteractor.tileset.is_at(x, y)
+        return TileInteractor.tileset.tile_at(x, y)

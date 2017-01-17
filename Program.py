@@ -8,6 +8,39 @@ from TileInteractor import TileInteractor
 from Entity import Entity
 from Pathfinder import Pathfinder
 
+# TileInteractor and Renderer and Pathfinder don't need to be classes
+# Refactor
+# Them
+# Just
+# Like
+# I
+# Refactored
+# Input
+
+
+# Clean up collision code - copy from FreedomFighter
+
+
+def handle_mouse_input(tileset):
+    # Add column to Tileset
+    if Input.key_typed(pygame.K_c):
+        tileset.add_columns(1)
+
+    # Add row to Tileset
+    if Input.key_typed(pygame.K_r):
+        tileset.add_rows(1)
+
+    # Make Tile at mouse position not passable
+    if Input.left_mouse_down:
+        if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
+            tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = False
+
+    # Make Tile at mosue position passable
+    if Input.right_mouse_down:
+        if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
+            tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = True
+
+
 # This is used for framerate
 clock = pygame.time.Clock()
 
@@ -33,23 +66,7 @@ if __name__ == "__main__":
 
         entity.move()
 
-        # Add column to Tileset
-        if Input.key_typed(pygame.K_c):
-            tileset.add_columns(1)
-
-        # Add row to Tileset
-        if Input.key_typed(pygame.K_r):
-            tileset.add_rows(1)
-
-        # Make Tile at mouse position not passable
-        if Input.left_mouse_down:
-            if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
-                tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = False
-
-        # Make Tile at mosue position passable
-        if Input.right_mouse_down:
-            if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
-                tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = True
+        handle_mouse_input(tileset);
 
         # This is SwinGame.ClearScreen(Color.White)
         Renderer.clear_screen()
