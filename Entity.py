@@ -1,5 +1,3 @@
-# Test comment
-
 import pygame
 from pygame.rect import Rect
 from Renderer import Renderer
