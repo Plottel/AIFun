@@ -3,6 +3,7 @@ import pygame
 from pygame.rect import Rect
 from Renderer import Renderer
 from Tile import Tile
+import Input
 
 
 class Tileset:
@@ -14,6 +15,7 @@ class Tileset:
     y = 0
     __cols = 0
     __rows = 0
+    show_grid = True
 
     # Read-only property. Columns can only be added via add_columns()
     @property
@@ -59,6 +61,15 @@ class Tileset:
     def is_at(self, x, y):
         return self.rect.collidepoint(x, y)
 
+    # Specifies if the Tileset is at the current mouse position
+    def is_at_mouse_pos(self):
+        return self.is_at(Input.mouse_x(), Input.mouse_y())
+
+
+    # Returns the Tile at the current mouse position
+    def tile_at_mouse_pos(self):
+        return self.tile_at(Input.mouse_x(), Input.mouse_y())
+
     # Adds the number of columns passed in to the Tiles
     # This is done by adding a new list equal to the length of rows
     def add_columns(self, amount_to_add):
@@ -99,5 +110,5 @@ class Tileset:
             for row in range(self.rows):
                 self.tiles[col][row].render()
 
-
-
+                if self.show_grid:
+                    pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, self.tiles[col][row].rect, 1)

@@ -9,6 +9,7 @@ class Tile:
     passable = True
     width = Renderer.TILE_SIZE
     height = Renderer.TILE_SIZE
+    color = Renderer.COLOR_WHITE
 
     # Read-only property. Rect is derived from x, y, width, height
     @property
@@ -22,7 +23,4 @@ class Tile:
     # Last argument in draw call is border width
     # 0 border with fills the rectangle, rather than drawing an outline
     def render(self):
-        if self.passable:
-            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, self.rect, 1)
-        else:
-            pygame.draw.rect(Renderer.SCREEN, Renderer.COLOR_BLACK, self.rect, 0)
+        pygame.draw.rect(Renderer.SCREEN, self.color, self.rect, 0)

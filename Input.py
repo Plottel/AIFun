@@ -42,6 +42,10 @@ def init():
     add_key(pygame.K_d)
     add_key(pygame.K_c)
     add_key(pygame.K_r)
+    add_key(pygame.K_q)
+    add_key(pygame.K_e)
+    add_key(pygame.K_g)
+    add_key(pygame.K_t)
 
 
 # Adds a new key to be tracked for input

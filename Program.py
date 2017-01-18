@@ -7,6 +7,7 @@ from pygame.rect import Rect
 from TileInteractor import TileInteractor
 from Entity import Entity
 from Pathfinder import Pathfinder
+import GenAlg
 
 # TileInteractor and Renderer and Pathfinder don't need to be classes
 # Refactor
@@ -22,6 +23,11 @@ from Pathfinder import Pathfinder
 
 
 def handle_mouse_input(tileset):
+    tile = None
+
+    if tileset.is_at_mouse_pos():
+        tile = tileset.tile_at_mouse_pos()
+
     # Add column to Tileset
     if Input.key_typed(pygame.K_c):
         tileset.add_columns(1)
@@ -32,13 +38,30 @@ def handle_mouse_input(tileset):
 
     # Make Tile at mouse position not passable
     if Input.left_mouse_down:
-        if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
-            tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = False
+        if tileset.is_at_mouse_pos():
+            tile.passable = False
+            tile.color = Renderer.COLOR_BLACK
 
-    # Make Tile at mosue position passable
+    # Make Tile at mouse position passable
     if Input.right_mouse_down:
+        if tileset.is_at_mouse_pos():
+            tile.passable = True
+            tile.color = Renderer.COLOR_WHITE
+
+    if Input.key_typed(pygame.K_q):
         if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
-            tileset.tile_at(Input.mouse_x(), Input.mouse_y()).passable = True
+            tile.passable = True
+            tile.color = Renderer.COLOR_GREEN
+            GenAlg.start_node = tile
+
+    if Input.key_typed(pygame.K_e):
+        if tileset.is_at_mouse_pos():
+            tile.passable = True
+            tile.color = Renderer.COLOR_RED
+            GenAlg.end_node = tile
+
+    if Input.key_typed(pygame.K_g):
+        GenAlg.init()
 
 
 # This is used for framerate
@@ -53,9 +76,17 @@ Input.init()
 if __name__ == "__main__":
     tileset = Tileset(50, 50, 10, 10)
     TileInteractor.tileset = tileset
-    entity = Entity(tileset.x, tileset.y)
 
     # path = Pathfinder.get_path(entity, tileset.tiles[5][5])
+
+
+    while not GenAlg.ready:
+        clock.tick(60)
+        Input.process_events()
+        handle_mouse_input(tileset)
+        Renderer.clear_screen()
+        tileset.render()
+        pygame.display.flip()
 
     while 1:
         # This is how we get our 60 FPS
@@ -64,15 +95,14 @@ if __name__ == "__main__":
         # This is SwinGame.ProcessEvents()
         Input.process_events()
 
-        entity.move()
-
-        handle_mouse_input(tileset);
+        handle_mouse_input(tileset)
 
         # This is SwinGame.ClearScreen(Color.White)
         Renderer.clear_screen()
 
         tileset.render()
-        entity.render()
+
+        GenAlg.run()
 
         # This is SwinGame.RefreshScreen()
         pygame.display.flip()

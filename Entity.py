@@ -5,8 +5,24 @@ from TileInteractor import TileInteractor
 import Input
 
 
+
+class Move:
+    left = False
+    right = False
+    up = False
+    down = False
+
+    def __init__(self, move_sequence):
+        self.left = move_sequence[0] > 0.5
+        self.up = move_sequence[1] > 0.5
+        self.right = move_sequence[2] > 0.5
+        self.down = move_sequence[3] > 0.5
+
+
 class Entity:
-    path = []
+    movement_sequence = []
+
+    fitness = 0
     speed = 1
     dx = 0
     dy = 0
@@ -25,31 +41,32 @@ class Entity:
         self.x = x
         self.y = y
 
-    def move(self):
+
+    def move(self, movement_index):
         # VERTICAL MOVEMENT
-        if Input.key_down(pygame.K_w):
+        if self.movement_sequence[movement_index].up:
             self.dy = -self.speed
 
-        if Input.key_down(pygame.K_s):
+        if self.movement_sequence[movement_index].down:
             self.dy = self.speed
 
-        if Input.key_down(pygame.K_w) & Input.key_down(pygame.K_s):
+        if self.movement_sequence[movement_index].up & self.movement_sequence[movement_index].down:
             self.dy = 0
 
-        if (not Input.key_down(pygame.K_w)) & (not Input.key_down(pygame.K_s)):
+        if (not self.movement_sequence[movement_index].up) & (not self.movement_sequence[movement_index].down):
             self.dy = 0
 
         # HORIZONTAL MOVEMENT
-        if Input.key_down(pygame.K_a):
+        if self.movement_sequence[movement_index].left:
             self.dx = -self.speed
 
-        if Input.key_down(pygame.K_d):
+        if self.movement_sequence[movement_index].right:
             self.dx = self.speed
 
-        if Input.key_down(pygame.K_d) & Input.key_down(pygame.K_a):
+        if self.movement_sequence[movement_index].left & self.movement_sequence[movement_index].right:
             self.dx = 0
 
-        if (not Input.key_down(pygame.K_a)) & (not Input.key_down(pygame.K_d)):
+        if (not self.movement_sequence[movement_index].left) & (not self.movement_sequence[movement_index].right):
             self.dx = 0
 
         # COLLISION CHECKS
@@ -80,3 +97,6 @@ class Entity:
 
 
 
+def spawn_entity(entity, spawn_node):
+    entity.x = spawn_node.x
+    entity.y = spawn_node.y
