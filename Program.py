@@ -74,7 +74,8 @@ pygame.init()
 Input.init()
 
 if __name__ == "__main__":
-    tileset = Tileset(50, 50, 10, 10)
+    tileset = Tileset(10, 10, 40, 40)
+    tileset.make_border()
     TileInteractor.tileset = tileset
 
     # path = Pathfinder.get_path(entity, tileset.tiles[5][5])

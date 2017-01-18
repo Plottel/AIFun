@@ -49,6 +49,15 @@ class Tileset:
         self.add_rows(rows)
         self.add_columns(cols)
 
+
+    def make_border(self):
+        for col in range(self.cols):
+            for row in range(self.rows):
+                if col == 0 or col == self.cols - 1 or row == 0 or row == self.rows - 1:
+                    self.tiles[col][row].passable = False
+                    self.tiles[col][row].color = Renderer.COLOR_BLACK
+
+
     # Returns the Tile at the given coordinates
     def tile_at(self, x, y):
         col = math.floor((x - self.x) / Renderer.TILE_SIZE)
