@@ -41,13 +41,6 @@ def parse_maze(tileset, maze):
 
             i += 1
 
-
-
-
-
-
-
-
 def handle_mouse_input(tileset):
     tile = None
 
@@ -119,9 +112,6 @@ if __name__ == "__main__":
     print(maze)
 
     parse_maze(tileset, maze)
-
-
-
 
     # path = Pathfinder.get_path(entity, tileset.tiles[5][5])
 
