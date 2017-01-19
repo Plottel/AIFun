@@ -11,3 +11,7 @@ class TileInteractor:
     @staticmethod
     def tile_at(x, y):
         return TileInteractor.tileset.tile_at(x, y)
+
+    @staticmethod
+    def index_at(x, y):
+        return TileInteractor.tileset.index_at(x, y)

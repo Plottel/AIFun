@@ -16,4 +16,4 @@ class Renderer:
 
     @staticmethod
     def clear_screen():
-        Renderer.SCREEN.fill(Renderer.COLOR_WHITE)
+        Renderer.SCREEN.fill((128, 128, 128))

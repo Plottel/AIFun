@@ -15,7 +15,7 @@ class Tileset:
     y = 0
     __cols = 0
     __rows = 0
-    show_grid = True
+    show_grid = False
 
     # Read-only property. Columns can only be added via add_columns()
     @property
@@ -64,6 +64,13 @@ class Tileset:
         row = math.floor((y - self.y) / Renderer.TILE_SIZE)
 
         return self.tiles[col][row]
+
+    # Returns the column and row values of the tile at x, y.
+    def index_at(self, x, y):
+        col = math.floor((x - self.x) / Renderer.TILE_SIZE)
+        row = math.floor((y - self.y) / Renderer.TILE_SIZE)
+
+        return col, row
 
     # Specifies if the Tileset is at the given coordinates
     # This should always be used before tile_at to prevent clicking outside the grid

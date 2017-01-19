@@ -9,7 +9,7 @@ class Tile:
     passable = True
     width = Renderer.TILE_SIZE
     height = Renderer.TILE_SIZE
-    color = Renderer.COLOR_WHITE
+    color = (128, 128, 128)
 
     # Read-only property. Rect is derived from x, y, width, height
     @property

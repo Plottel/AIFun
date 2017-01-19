@@ -5,9 +5,9 @@ from Renderer import Renderer
 from Tileset import Tileset
 from pygame.rect import Rect
 from TileInteractor import TileInteractor
+import GenAlg
 from Entity import Entity
 from Pathfinder import Pathfinder
-import GenAlg
 
 # TileInteractor and Renderer and Pathfinder don't need to be classes
 # Refactor
@@ -46,7 +46,7 @@ def handle_mouse_input(tileset):
     if Input.right_mouse_down:
         if tileset.is_at_mouse_pos():
             tile.passable = True
-            tile.color = Renderer.COLOR_WHITE
+            tile.color = (128, 128, 128)
 
     if Input.key_typed(pygame.K_q):
         if tileset.is_at(Input.mouse_x(), Input.mouse_y()):
