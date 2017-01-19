@@ -22,6 +22,32 @@ from Pathfinder import Pathfinder
 # Clean up collision code - copy from FreedomFighter
 
 
+# Parses maze.
+# Make sure string matches grid
+def parse_maze(tileset, maze):
+    i = 0
+    for row in range(tileset.rows):
+        for col in range(tileset.cols):
+            # Keep looping through indexes until we find an X or an O
+            while maze[i] != "X" and maze[i] != "-":
+                i += 1
+
+            if maze[i] == "X":
+                tileset.tiles[col][row].color = Renderer.COLOR_BLACK
+                tileset.tiles[col][row].passable = False
+            elif maze[i] == "-":
+                tileset.tiles[col][row].color = (128, 128, 128)
+                tileset.tiles[col][row].passable = True
+
+            i += 1
+
+
+
+
+
+
+
+
 def handle_mouse_input(tileset):
     tile = None
 
@@ -74,9 +100,28 @@ pygame.init()
 Input.init()
 
 if __name__ == "__main__":
-    tileset = Tileset(10, 10, 40, 40)
+    tileset = Tileset(10, 10, 20, 10)
     tileset.make_border()
     TileInteractor.tileset = tileset
+
+    maze = """
+            XXXXXXXXXXXXXXXXXXXX
+            X------------------X
+            X--XXXXX----XXXX---X
+            X--X--------XXXX---X
+            X--X---XXX--X------X
+            X--XX------X---X--XX
+            X--------XXXXX-----X
+            XXXXXXX--X------XXXX
+            X--------X--XX-----X
+            XXXXXXXXXXXXXXXXXXXX"""
+
+    print(maze)
+
+    parse_maze(tileset, maze)
+
+
+
 
     # path = Pathfinder.get_path(entity, tileset.tiles[5][5])
 

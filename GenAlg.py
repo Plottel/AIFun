@@ -14,7 +14,7 @@ CURRENT_GENERATION = 0
 POPULATION_SIZE = 150
 MAX_MOVES = 100
 TICK_RATE = 0.048888888888
-MUTATION_CHANCE = 0.05
+MUTATION_CHANCE = 0.30
 FRAMES_PER_MOVE = math.ceil(60 / TICK_RATE)
 FRAMES_PER_GENERATION = MAX_MOVES * (FRAMES_PER_MOVE)
 
@@ -206,7 +206,7 @@ def make_children(parents):
         mum = parents[random.randint(0, math.floor(len(parents) / 2))]
         dad = parents[random.randint(math.floor(len(parents) / 2), len(parents) - 1)]
 
-        get_inherited_movement_sequence((mum, dad), child)
+        get_inherited_movement_sequence((mum, mum), child)
 
         children.append(child)
 
