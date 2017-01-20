@@ -9,12 +9,7 @@ class Population:
 
     def move(self):
         for entity in self.entities:
-            entity.move(self.movement_index)
-
-    # Increments the movement index, telling Entities to move to the next set of inputs in their sequence
-    def tick(self):
-        self.movement_index += 1
-
+            entity.move()
 
     def render(self):
         for entity in self.entities:

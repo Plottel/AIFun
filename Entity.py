@@ -3,8 +3,10 @@ from pygame.rect import Rect
 from Renderer import Renderer
 from TileInteractor import TileInteractor
 import Input
+
 from enum import Enum
-import GenAlg
+import time
+import random
 
 class Dir(Enum):
     Left = 1
@@ -18,12 +20,23 @@ class Dir(Enum):
     Still = 9
 
 
+class GeneData:
+    move_tendencies = {}
+    tick_rate = 0
+    last_tick = 0
+    speed = 0
+
+    def __init__(self):
+        self.speed = 0
+        self.last_tick = 0
+        self.tick_rate = 0
+        self.move_tendencies = {}
+
+
 class Entity:
-    movement_sequence = []
     last_dir = None
 
     fitness = 0
-    speed = 8
     dx = 0
     dy = 0
     x = 0
@@ -51,11 +64,11 @@ class Entity:
 
             self.tiles_visited.append(new_col)
 
-
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.movement_sequence = []
+        self.fitness = 0
+        self.genes = GeneData()
         self.tiles_visited = []
         self.populate_tiles_visited()
         self.successful_moves = 0
@@ -89,38 +102,67 @@ class Entity:
                                           self.y + self.dy + self.height).passable:  # Bottom right corner
                     self.y += self.dy
 
-
-    def move(self, movement_index):
-        # VERTICAL MOVEMENT
-        if self.movement_sequence[movement_index][Dir.Up]:
-            self.dy = -self.speed
-
-        if self.movement_sequence[movement_index][Dir.Down]:
-            self.dy = self.speed
-
-        if self.movement_sequence[movement_index][Dir.Up] & self.movement_sequence[movement_index][Dir.Down]:
+    # Map the movement selection to velocities.
+    # This should be a dictionary but is just elif branches to get it up and running.
+    def assign_move_velocity(self, dir):
+        if dir == Dir.Left:
+            self.dx = -self.genes.speed
+            self.dy = 0
+        elif dir == Dir.Up:
+            self.dx = 0
+            self.dy = -self.genes.speed
+        elif dir == Dir.Right:
+            self.dx = self.genes.speed
+            self.dy = 0
+        elif dir == Dir.Down:
+            self.dx = 0
+            self.dy = self.genes.speed
+        elif dir == Dir.NE:
+            self.dx = self.genes.speed
+            self.dy = -self.genes.speed
+        elif dir == Dir.SE:
+            self.dx = self.genes.speed
+            self.dy = self.genes.speed
+        elif dir == Dir.SW:
+            self.dx = -self.genes.speed
+            self.dy = self.genes.speed
+        elif dir == Dir.NW:
+            self.dx = -self.genes.speed
+            self.dy = -self.genes.speed
+        else: # Direction.Still
+            self.dx = 0
             self.dy = 0
 
-        if (not self.movement_sequence[movement_index][Dir.Up]) & (not self.movement_sequence[movement_index][Dir.Down]):
-            self.dy = 0
 
-        # HORIZONTAL MOVEMENT
-        if self.movement_sequence[movement_index][Dir.Left]:
-            self.dx = -self.speed
+    # Use roulette wheel method used in GenAlg to get a new move.
+    def get_new_move(self):
+        total_move_pcnt_value = 0
 
-        if self.movement_sequence[movement_index][Dir.Right]:
-            self.dx = self.speed
+        # Add up total value of all tendencies
+        for key in self.genes.move_tendencies.keys():
+            total_move_pcnt_value += self.genes.move_tendencies[key]
 
-        if self.movement_sequence[movement_index][Dir.Left] & self.movement_sequence[movement_index][Dir.Right]:
-            self.dx = 0
+        # Pick random value which, when reached, will be the move
+        selection_threshold = random.uniform(0, total_move_pcnt_value)
 
-        if (not self.movement_sequence[movement_index][Dir.Left]) & (not self.movement_sequence[movement_index][Dir.Right]):
-            self.dx = 0
+        # Loop through each movement option until the selection threshold is reached.
+        # Once it is, assign velocities based on the movement selection
+        for key in self.genes.move_tendencies.keys():
+            selection_threshold -= self.genes.move_tendencies[key]
+
+            if selection_threshold <= 0:
+                self.assign_move_velocity(key)
+                return
+
+    def move(self):
+        if time.time() - self.genes.last_tick >= self.genes.tick_rate:
+            self.get_new_move()
+            self.genes.last_tick = time.time()
 
         self.check_collisions()
 
         index = TileInteractor.index_at(self.x + (Renderer.TILE_SIZE / 2), self.y + (Renderer.TILE_SIZE / 2))
-        if index == TileInteractor.index_at(GenAlg.end_node.x, GenAlg.end_node.y):
+        if index == TileInteractor.index_at(TileInteractor.end_node.x, TileInteractor.end_node.y):
             self.time_spent_at_end += 1
         else:
             self.tiles_visited[index[0]][index[1]] += 1

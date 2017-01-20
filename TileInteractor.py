@@ -4,6 +4,9 @@ from Tileset import Tileset
 class TileInteractor:
     tileset = None
 
+    start_node = None
+    end_node = None
+
     @staticmethod
     def is_at(x, y):
         return TileInteractor.tileset.is_at(x, y)

@@ -5,15 +5,25 @@ import random
 from random import shuffle
 import Input
 import pygame
+
+from Entity import GeneData
 from Entity import Dir
+from Entity import Entity
 import time
 
 CURRENT_GENERATION = 0
 
 # Variables determining the scope of the simulation
-POPULATION_SIZE = 150
+POPULATION_SIZE = 50
 MAX_MOVES = 100
 TICK_RATE = 0.048888888888
+GEN_LIFETIME = 5
+FASTEST_TICK_RATE = 0.04888888888
+SLOWEST_TICK_RATE = 2
+
+MIN_SPEED = 1
+MAX_SPEED = 8
+
 MUTATION_CHANCE = 0.30
 FRAMES_PER_MOVE = math.ceil(60 / TICK_RATE)
 FRAMES_PER_GENERATION = MAX_MOVES * (FRAMES_PER_MOVE)
@@ -113,20 +123,38 @@ def get_full_move_sequence():
         Dir.Down: False
     }
 
-# Returns a dictionary containing a boolean value for each movement direction
-def get_random_movement_sequence():
+# Generate random percentile chances that the
+# individual will choose the direction to move in
+def get_random_move_tendencies():
     return {
-        Dir.Left: random.randint(0, 1) > 0.5,
-        Dir.Up: random.randint(0, 1) > 0.5,
-        Dir.Right: random.randint(0, 1) > 0.5,
-        Dir.Down: random.randint(0, 1) > 0.5
+        Dir.Left: random.uniform(0, 1),
+        Dir.Right: random.uniform(0, 1),
+        Dir.Up: random.uniform(0, 1),
+        Dir.Down: random.uniform(0, 1),
+        Dir.NE: random.uniform(0, 1),
+        Dir.SE: random.uniform(0, 1),
+        Dir.SW: random.uniform(0, 1),
+        Dir.NW: random.uniform(0, 1),
+        Dir.Still: random.uniform(0, 1)
     }
 
 
-def get_inherited_movement_sequence(parents, child):
+# Returns a random set of gene data. Used in the initial population.
+def get_random_gene_data():
+    result = GeneData()
+    result.move_tendencies = get_random_move_tendencies()
+    result.tick_rate = random.uniform(FASTEST_TICK_RATE, SLOWEST_TICK_RATE)
+    result.last_tick = 0
+    result.speed = random.randint(MIN_SPEED, MAX_SPEED)
 
-    for i in range(MAX_MOVES):
-        child.movement_sequence.append(parents[random.randint(0, 1)].movement_sequence[i])
+    return result
+
+
+def get_inherited_gene_data(parents, child):
+    child.genes = GeneData()
+    child.genes.move_tendencies = parents[random.randint(0, 1)].genes.move_tendencies
+    child.genes.tick_rate = parents[random.randint(0, 1)].genes.tick_rate
+    child.genes.speed = parents[random.randint(0, 1)].genes.speed
 
 
 #####                                           #####
@@ -206,7 +234,7 @@ def make_children(parents):
         mum = parents[random.randint(0, math.floor(len(parents) / 2))]
         dad = parents[random.randint(math.floor(len(parents) / 2), len(parents) - 1)]
 
-        get_inherited_movement_sequence((mum, mum), child)
+        get_inherited_gene_data((mum, dad), child)
 
         children.append(child)
 
@@ -215,19 +243,24 @@ def make_children(parents):
 
 def mutate():
     for entity in population.entities:
-
         if random.random() <= MUTATION_CHANCE:
-            mutated_moves = []
+            # Pick a random number to indicate which gene should be changed.
+            # This is messy and proper mapping should happen, but just getting it running.
+            gene_to_mutate = random.randint(0, 2)
 
-            while not random.randint(0, 3) == 0:
-                index_to_mutate = random.randint(0, MAX_MOVES - 1)
+            # Mutate move tendencies
+            if gene_to_mutate == 0:
+                # Pick a random number for the move to mutate.
+                move_to_mutate = random.randint(1, 9)
 
-                while index_to_mutate in mutated_moves:
-                    index_to_mutate = random.randint(0, MAX_MOVES - 1)
+                # Pick a random number to be the new tendency
+                mutated_value = random.uniform(0, 1)
 
-                mutated_moves.append(index_to_mutate)
+                for dir in entity.genes.move_tendencies.keys():
+                    if dir == Dir(move_to_mutate):
+                        entity.genes.move_tendencies[dir] = mutated_value
+                        break;
 
-                entity.movement_sequence[index_to_mutate] = get_random_movement_sequence()
 
 def print_fitness_data():
     best_entity = None
@@ -242,9 +275,6 @@ def print_fitness_data():
 
 
 def evolve():
-    # Reset back to the beginning of the movement sequence
-    population.movement_index = 0
-
     # Declare lists for use in evolution
     next_generation = []
     parents = []
@@ -306,9 +336,7 @@ def init():
     # Make individuals for the population
     for x in range(POPULATION_SIZE):
         entity = create_entity()
-
-        for i in range(MAX_MOVES):
-            entity.movement_sequence.append(get_full_move_sequence())
+        entity.genes = get_random_gene_data()
 
         population.entities.append(entity)
 
@@ -329,13 +357,12 @@ def run():
     global population
     global start_time
 
-    if population.movement_index == MAX_MOVES:
+    # If the length of the simulation has been reached,
+    # evolve to the next generation
+    if time.time() - start_time > GEN_LIFETIME:
         evolve()
+        start_time = time.time()
 
     population.move()
-
-    if time.time() - start_time > TICK_RATE:
-        population.tick()
-        start_time = time.time()
 
     population.render()
