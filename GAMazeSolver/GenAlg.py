@@ -14,33 +14,34 @@ import time
 CURRENT_GENERATION = 0
 
 # Variables determining the scope of the simulation
-POPULATION_SIZE = 50
+POPULATION_SIZE = 100
+PATH_SEQUENCE_LENGTH = 10
 MAX_MOVES = 100
 TICK_RATE = 0.048888888888
-GEN_LIFETIME = 5
+GEN_LIFETIME = 15
 FASTEST_TICK_RATE = 0.04888888888
 SLOWEST_TICK_RATE = 2
 
 MIN_SPEED = 1
 MAX_SPEED = 8
 
-MUTATION_CHANCE = 0.30
+MUTATION_CHANCE = 0.03
 FRAMES_PER_MOVE = math.ceil(60 / TICK_RATE)
-FRAMES_PER_GENERATION = MAX_MOVES * (FRAMES_PER_MOVE)
+FRAMES_PER_GENERATION = 60 * GEN_LIFETIME
 
 # When calculating weightings, division = good score, multiplication = penalty.
 # Number of frames the simulation ran for * MAX_MOVES
-MAX_TILES_REVISITED_PENALTY = FRAMES_PER_GENERATION
-TILES_VISITED_WEIGHTING = 0.001
+MAX_TILES_REVISITED_PENALTY = math.pow(FRAMES_PER_GENERATION, 2)
+TILES_VISITED_WEIGHTING = 0.5
 
 MAX_STAND_STILL_SCORE = MAX_MOVES / TICK_RATE
-MAX_STAND_STILL_WEIGHTING = 0.09
+MAX_STAND_STILL_WEIGHTING = 0
 
 MAX_TIME_SPENT_AT_GOAL = MAX_TILES_REVISITED_PENALTY
-TIME_SPENT_AT_GOAL_WEIGHTING = 0.9
+TIME_SPENT_AT_GOAL_WEIGHTING = 0.5
 
 MAX_DIRECTION_CHANGE_PENALTY = MAX_MOVES
-DIRECTION_CHANGE_WEIGHTING = 0.009
+DIRECTION_CHANGE_WEIGHTING = 0
 
 # Parent selection constants
 PCNT_BEST_CHOSEN = 20
@@ -60,17 +61,20 @@ ready = False
 # Delta time
 start_time = time.time()
 
+
 def calculate_time_spent_at_end_node(entity):
     if entity.time_spent_at_end > MAX_TIME_SPENT_AT_GOAL:
         print("End node max WRONG")
 
     return (entity.time_spent_at_end / MAX_TIME_SPENT_AT_GOAL) / TIME_SPENT_AT_GOAL_WEIGHTING
 
+
 def calculate_successful_move_score(entity):
     if entity.successful_moves > MAX_STAND_STILL_SCORE:
         print("Stand still score max WRONG")
 
     return (entity.successful_moves / MAX_STAND_STILL_SCORE) / MAX_STAND_STILL_WEIGHTING
+
 
 def calculate_revisited_tiles_penalty(entity):
     result = 0
@@ -102,9 +106,9 @@ def calculate_direction_change_penalty(entity):
 # Also returns the fitness value to be used to get total population fitness.
 def calculate_fitness(entity):
     fitness = calculate_revisited_tiles_penalty(entity)
-    fitness += calculate_successful_move_score(entity)
+    #fitness += calculate_successful_move_score(entity)
     fitness += calculate_time_spent_at_end_node(entity)
-    fitness += calculate_direction_change_penalty(entity)
+    #fitness += calculate_direction_change_penalty(entity)
 
     entity.fitness = fitness * 100
     return entity.fitness
@@ -112,7 +116,7 @@ def calculate_fitness(entity):
 
 # Creates an entity at the co-ordinates of the start node
 def create_entity():
-    return Entity(start_node.x, start_node.y)
+    return Entity(start_node.x + 1, start_node.y + 1)
 
 
 def get_full_move_sequence():
@@ -142,20 +146,42 @@ def get_random_move_tendencies():
 # Returns a random set of gene data. Used in the initial population.
 def get_random_gene_data():
     result = GeneData()
-    result.move_tendencies = get_random_move_tendencies()
-    result.tick_rate = random.uniform(FASTEST_TICK_RATE, SLOWEST_TICK_RATE)
-    result.last_tick = 0
-    result.speed = random.randint(MIN_SPEED, MAX_SPEED)
+    result.sequence_length = PATH_SEQUENCE_LENGTH
+
+    #result.path_sequence.append(Dir.Right)
+    #result.path_sequence.append(Dir.Down)
+    #result.path_sequence.append(Dir.Left)
+    #result.path_sequence.append(Dir.Down)
+    #result.path_sequence.append(Dir.Left)
+
+    for x in range(result.sequence_length):
+        result.path_sequence.append(random.randint(0, 1) > 0.5)
 
     return result
 
 
 def get_inherited_gene_data(parents, child):
+    # Pick each move sequence randomly from parent
+    # Something in here about length
     child.genes = GeneData()
-    child.genes.move_tendencies = parents[random.randint(0, 1)].genes.move_tendencies
-    child.genes.tick_rate = parents[random.randint(0, 1)].genes.tick_rate
-    child.genes.speed = parents[random.randint(0, 1)].genes.speed
+    child.genes.sequence_length = PATH_SEQUENCE_LENGTH
 
+    # Get a direction for each index in the list.
+    # Check if mum and dad still have indexes in that range.
+    # If neither of them do, generate a random dir.
+    for i in range(PATH_SEQUENCE_LENGTH):
+        # If both parents still have indexes, pick a random parent.
+        if parents[0].genes.sequence_length > i and parents[1].genes.sequence_length > i:
+            child.genes.path_sequence.append(parents[random.randint(0, 1)].genes.path_sequence[i])
+        else:
+            if parents[0].genes.sequence_length > i:
+                child.genes.path_sequence.append(parents[0].genes.path_sequence[i])
+            elif parents[1].genes.sequence_length > i:
+
+                child.genes.path_sequence.append(parents[1].genes.path_sequence[i])
+            else:
+                # If neither parent has indexes left, generate random True or False
+                child.genes.path_sequence.append(random.randint(0, 1) > 0.5)
 
 #####                                           #####
 #####       START REGION PARENT SELECTION       #####
@@ -193,6 +219,7 @@ def get_pop_fitness():
 
     return total_fitness
 
+
 def select_parents():
     global population
 
@@ -226,13 +253,16 @@ def select_parents():
 
 
 def make_children(parents):
-    number_of_children = math.floor(POPULATION_SIZE / 4)
     children = []
 
     for i in range(POPULATION_SIZE - len(parents)):
         child = create_entity()
-        mum = parents[random.randint(0, math.floor(len(parents) / 2))]
-        dad = parents[random.randint(math.floor(len(parents) / 2), len(parents) - 1)]
+        mum = parents[random.randint(0, len(parents) - 1)]
+        dad = parents[random.randint(0, len(parents) - 1)]
+
+        # Keep fetching a new parent until there are 2 separate parents
+        while dad == mum:
+            dad = parents[random.randint(0, len(parents) - 1)]
 
         get_inherited_gene_data((mum, dad), child)
 
@@ -244,22 +274,9 @@ def make_children(parents):
 def mutate():
     for entity in population.entities:
         if random.random() <= MUTATION_CHANCE:
-            # Pick a random number to indicate which gene should be changed.
-            # This is messy and proper mapping should happen, but just getting it running.
-            gene_to_mutate = random.randint(0, 2)
-
-            # Mutate move tendencies
-            if gene_to_mutate == 0:
-                # Pick a random number for the move to mutate.
-                move_to_mutate = random.randint(1, 9)
-
-                # Pick a random number to be the new tendency
-                mutated_value = random.uniform(0, 1)
-
-                for dir in entity.genes.move_tendencies.keys():
-                    if dir == Dir(move_to_mutate):
-                        entity.genes.move_tendencies[dir] = mutated_value
-                        break;
+            # Change a random index in path sequence to a random direction.
+            index_to_change = random.randint(0, entity.genes.sequence_length - 1)
+            entity.genes.path_sequence[index_to_change] = random.randint(0, 1) > 0.5
 
 
 def print_fitness_data():
@@ -277,8 +294,6 @@ def print_fitness_data():
 def evolve():
     # Declare lists for use in evolution
     next_generation = []
-    parents = []
-
     parents = select_parents()
 
     children = make_children(parents)
@@ -305,15 +320,21 @@ def evolve():
 
     # Reset entity values
     for entity in population.entities:
-        entity.x = start_node.x
-        entity.y = start_node.y
+        entity.x = start_node.x + 1
+        entity.y = start_node.y + 1
         entity.successful_moves = 0
         entity.time_spent_at_end = 0
         entity.fitness = 0
         entity.direction_changes = 0
+        entity.cur_tile_index = (0, 0)
 
     global CURRENT_GENERATION
     CURRENT_GENERATION += 1
+
+    # Increment sequence length every 5 generations
+    if CURRENT_GENERATION % 5 == 0:
+        global PATH_SEQUENCE_LENGTH
+        PATH_SEQUENCE_LENGTH += 1
 
     print(CURRENT_GENERATION)
 

@@ -1,11 +1,10 @@
 from Entity import *
 import GenAlg
 from Renderer import Renderer
+from Entity import Dir
 
 class Population:
     entities = []
-    movement_index = 0
-
 
     def move(self):
         for entity in self.entities:

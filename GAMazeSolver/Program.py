@@ -91,26 +91,42 @@ clock = pygame.time.Clock()
 
 # This initialises pygame
 pygame.init()
+pygame.font.init()
 
 # This initialises keyboard and mouse input
 Input.init()
 
 if __name__ == "__main__":
-    tileset = Tileset(10, 10, 20, 10)
+    tileset = Tileset(10, 10, 40, 25)
     tileset.make_border()
     TileInteractor.tileset = tileset
 
     maze = """
-            XXXXXXXXXXXXXXXXXXXX
-            X------------------X
-            X--XXXXX----XXXX---X
-            X--X--------XXXX---X
-            X--X---XXX--X------X
-            X--XX------X---X--XX
-            X--------XXXXX-----X
-            XXXXXXX--X------XXXX
-            X--------X--XX-----X
-            XXXXXXXXXXXXXXXXXXXX"""
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"""
 
     print(maze)
 
@@ -127,6 +143,9 @@ if __name__ == "__main__":
         tileset.render()
         pygame.display.flip()
 
+    font = pygame.font.Font(None, 30)
+
+
     while 1:
         # This is how we get our 60 FPS
         clock.tick(60)
@@ -141,7 +160,10 @@ if __name__ == "__main__":
 
         tileset.render()
 
+
+        text = font.render("Generation: " + str(GenAlg.CURRENT_GENERATION), 1, (255, 255, 255))
         GenAlg.run()
+        Renderer.SCREEN.blit(text, (15, 15))
 
         # This is SwinGame.RefreshScreen()
         pygame.display.flip()
