@@ -1,5 +1,6 @@
 import random
 import Params
+from scipy.special import expit
 
     ###############################################
     ###               NEURON CLASS              ###
@@ -10,8 +11,8 @@ import Params
 class Neuron:
     # Creates randomised value representing input weights.
     # When a Neuron is created, its inputs are randomised.
-    def randomise_inputs(self):
-        # 1 extra input represents the threshold value.
+    def randomise_weights(self):
+        # 1 extra weight represents the threshold value.
         # This way allows the threshold to be built into the weights,
         # simplifying the math and allowing the GA to easily manipulate it.
         for i in range(self.num_inputs + 1):
@@ -22,7 +23,7 @@ class Neuron:
         self.num_inputs = num_inputs
         self.input_weights = []
 
-        self.randomise_inputs()
+        self.randomise_weights()
 
 
         ###############################################
@@ -46,9 +47,9 @@ class NeuronLayer:
         self.populate_neurons()
 
 
-            ###############################################
-            ###               NEURAL NET CLASS          ###
-            ###############################################
+        ###############################################
+        ###               NEURAL NET CLASS          ###
+        ###############################################
 
 # Co-ordinates the Neural Network
 # Stores each layer of neurons
@@ -64,19 +65,60 @@ class NeuralNet:
     # Initialises weights to random values between -1 and 1.
     def create_net(self):
         # Create first hidden layer.
-        # This receives its input from the input layer,
-        # therefore its num_inputs == NeuralNet.num_inputs
+        # This receives its input from the input layer, therefore its num_inputs == NeuralNet.num_inputs
         self.layers.append(NeuronLayer(self.neurons_per_hidden_layer, self.num_inputs))
 
-        # Create remaining hidden layers
-        # These receive input from another hidden layer,
-        # therefore its num_inputs == NeuralNet.neurons_per_hidden_layer
+        # Create remaining hidden layers.
+        # These receive input from another hidden layer, therefore its num_inputs == NeuralNet.neurons_per_hidden_layer
         for i in range(self.num_hidden_layers - 1):
             self.layers.append(NeuronLayer(self.neurons_per_hidden_layer, self.neurons_per_hidden_layer))
 
         # Create output layer.
         # Its num_neurons == NeuralNet.num_outputs
         self.layers.append(NeuronLayer(self.num_outputs, self.neurons_per_hidden_layer))
+
+    # Returns all the weights in the Network as a list.
+    def get_weights(self):
+
+    # Returns the number of weights in the Network
+    def get_number_of_weights(self):
+
+    # Replaces the weights in the Network with new ones
+    def put_weights(self, weights):
+
+    # This is the Network "loop".
+    # Takes inputs, runs them through the Network, and calculates the resulting outputs.
+    def update(self, inputs):
+        # Used for each layer, the output from one layer becomes the inputs for the next.
+        outputs = []
+
+        # Loop through each layer.
+        # This includes hidden layers and final output layer.
+        for layer in self.layers:
+            # On all layers except the first hidden layer, outputs become inputs for next layer.
+            # Only the first hidden layer will avoid this condition.
+            if layer.num_inputs_per_neuron != self.num_inputs:
+                inputs = outputs
+
+            outputs = []
+
+            # For each Neuron in the layer.
+            for neuron in layer.neurons:
+                tot_weighted_input = 0
+                # For each input in the Neuron except last one.
+                # Last input is the bias and therefore does not have a corresponding input
+                for k in range(self.layers[i].neurons[j].num_inputs - 1):
+                    # Calculate the total weighted input.
+                    tot_weighted_input += inputs[k] * neuron.input_weights[k]
+
+                # Add in the bias for this Neuron.
+                # Bias is an extra weight with an input value of -1
+                tot_weighted_input += neuron.input_weights[neuron.num_inputs - 1] * Params.bias
+
+                # Generate output value by running weighted input through Sigmoid function
+                outputs.append(expit(tot_weighted_input))
+
+        return outputs
 
     def __init__(self):
         self.layers = []
