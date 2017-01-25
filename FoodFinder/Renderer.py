@@ -1,6 +1,5 @@
 import pygame
 
-
 class Renderer:
     SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 1000, 1000
 

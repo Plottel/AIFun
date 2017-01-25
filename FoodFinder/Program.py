@@ -12,4 +12,8 @@ if __name__ == "__main__":
         clock.tick(60)
         Input.process_events()
         Renderer.clear_screen()
+
+        if Input.key_down(pygame.K_w):
+            Renderer.SCREEN.fill((255, 255, 255))
+
         pygame.display.flip()
