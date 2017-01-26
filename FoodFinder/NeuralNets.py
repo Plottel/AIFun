@@ -78,13 +78,50 @@ class NeuralNet:
         self.layers.append(NeuronLayer(self.num_outputs, self.neurons_per_hidden_layer))
 
     # Returns all the weights in the Network as a list.
+    # Runs through each Weight in each Neuron in each Layer
     def get_weights(self):
+        result = []
+
+        # Loop through each layer.
+        for layer in self.layers:
+            # Loop through each neuron.
+            for neuron in layer.neurons:
+                # Loop through each weight.
+                for weight in neuron.input_weights:
+                    result.append(weight)
+
+        return result
 
     # Returns the number of weights in the Network
     def get_number_of_weights(self):
+        result = 0
 
-    # Replaces the weights in the Network with new ones
-    def put_weights(self, weights):
+        # Loop through each layer.
+        for layer in self.layers:
+            # Loop through each neuron.
+            for neuron in layer.neurons:
+                # Loop through each weight.
+                for weight in neuron.input_weights:
+                    result += 1
+
+        return result
+
+    # Replaces the weights in the Network with new ones.
+    # Runs through each Weight in each Neuron in each Layer
+    def replace_weights(self, weights):
+        # The index of the weight currently being replaced
+        cur_weight = 0
+
+        # Loop through each layer.
+        # This includes hidden layers and final output layer
+        for layer in self.layers:
+            # Loop through each Neuron in the layer
+            for neuron in layer.neurons:
+                # Loop through each weight in the neuron
+                for k in range(neuron.num_inputs):
+                    neuron.input_weights[k] = weights[cur_weight]
+                    cur_weight += 1
+
 
     # This is the Network "loop".
     # Takes inputs, runs them through the Network, and calculates the resulting outputs.
@@ -107,7 +144,7 @@ class NeuralNet:
                 tot_weighted_input = 0
                 # For each input in the Neuron except last one.
                 # Last input is the bias and therefore does not have a corresponding input
-                for k in range(self.layers[i].neurons[j].num_inputs - 1):
+                for k in range(neuron.num_inputs - 1):
                     # Calculate the total weighted input.
                     tot_weighted_input += inputs[k] * neuron.input_weights[k]
 

@@ -13,6 +13,12 @@ if __name__ == "__main__":
         Input.process_events()
         Renderer.clear_screen()
 
+        # Loop for number of ticks in each generation
+            # Update neural net
+            # Move entities
+
+        # Pass GenAlg population and get it to update brains for each Entity
+
         if Input.key_down(pygame.K_w):
             Renderer.SCREEN.fill((255, 255, 255))
 
