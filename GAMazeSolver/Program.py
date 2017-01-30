@@ -1,14 +1,12 @@
-import pygame, sys
 import Input
-from pygame.locals import *
 from Renderer import Renderer
-from Tileset import Tileset
-from pygame.rect import Rect
 from TileInteractor import TileInteractor
-from Entity import Entity
+from Tileset import Tileset
+from pygame.locals import *
+
+import pygame
 import GenAlg
 
-from Pathfinder import Pathfinder
 
 # TileInteractor and Renderer and Pathfinder don't need to be classes
 # Refactor

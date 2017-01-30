@@ -1,7 +1,5 @@
 from Entity import *
-import GenAlg
-from Renderer import Renderer
-from Entity import Dir
+
 
 class Population:
     entities = []
@@ -26,7 +24,6 @@ class Population:
 
                 if first_fitness < second_fitness:
                     temp = self.entities[j + 1]
-                    temp.fitness = 12
 
                     self.entities[j + 1] = self.entities[j]
                     self.entities[j] = temp

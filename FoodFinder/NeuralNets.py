@@ -1,6 +1,11 @@
 import random
 import Params
-from scipy.special import expit
+import math
+
+def sigmoid(output):
+    if output < 0:
+        return 1 - 1 / (1 + math.exp(output))
+    return 1 / (1 + math.exp(-output))
 
     ###############################################
     ###               NEURON CLASS              ###
@@ -152,17 +157,14 @@ class NeuralNet:
                 # Bias is an extra weight with an input value of -1
                 tot_weighted_input += neuron.input_weights[neuron.num_inputs - 1] * Params.bias
 
+                output = sigmoid(tot_weighted_input)
+                format(output, '.5f')
+
                 # Generate output value by running weighted input through Sigmoid function
-                outputs.append(expit(tot_weighted_input))
+                outputs.append(output)
 
         return outputs
 
     def __init__(self):
         self.layers = []
         self.create_net()
-
-
-
-
-
-
