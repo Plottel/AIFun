@@ -14,7 +14,7 @@ class Food:
     def __init__(self):
         self.x = random.randint(0, Renderer.SCREEN_WIDTH)
         self.y = random.randint(0, Renderer.SCREEN_HEIGHT)
-        self.size = 3
+        self.size = 6
 
     def render(self):
         pygame.draw.rect(Renderer.SCREEN, (10, 10, 10), self.rect, 0)

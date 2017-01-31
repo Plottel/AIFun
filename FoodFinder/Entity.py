@@ -76,3 +76,4 @@ class Entity:
 
     def render(self, color):
         pygame.draw.rect(Renderer.SCREEN, color, self.rect, 0)
+        pygame.draw.line(Renderer.SCREEN, (255, 0, 0), (self.x, self.y), (self.closest_food.x, self.closest_food.y), 1)
