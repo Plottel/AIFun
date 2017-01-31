@@ -2,6 +2,7 @@ import random
 import Params
 import math
 
+
 def sigmoid(output):
     if output < 0:
         return 1 - 1 / (1 + math.exp(output))

@@ -1,9 +1,12 @@
-num_inputs = 2
+num_inputs = 4
 num_hidden_layers = 1
 neurons_per_hidden_layer = 6
-num_outputs = 4
+num_outputs = 2
 bias = -1
-generation_length = 12
+generation_length = 5
 ticks_per_generation = generation_length * 60
 population_size = 30
-num_food = 30
+num_food = 200
+MAX_ANGLE_CHANGE = 10
+mutation_rate = 0.2
+crossover_rate = 0.7

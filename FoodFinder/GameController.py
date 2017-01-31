@@ -1,4 +1,5 @@
 import math
+import random
 import time
 import pygame
 
@@ -9,7 +10,7 @@ from NeuralNets import NeuralNet
 from Pickups import Food
 from Renderer import Renderer
 
-from FoodFinder import GenAlg
+import GenAlg
 
 FAST_FORWARD = False
 
@@ -18,6 +19,9 @@ CURRENT_GENERATION = 1
 
 population = []
 all_food = []
+
+lowest_output = 0
+highest_output = 0
 
 def sort_by_fitness():
     global population
@@ -32,7 +36,6 @@ def sort_by_fitness():
 
             if first_fitness < second_fitness:
                 temp = population[j + 1]
-                temp.fitness = 12
 
                 population[j + 1] = population[j]
                 population[j] = temp
@@ -46,8 +49,8 @@ def init():
     for i in range(Params.population_size):
         new_entity = Entity()
         new_entity.brain = NeuralNet()
-        new_entity.x = Renderer.SCREEN_WIDTH / 2
-        new_entity.y = Renderer.SCREEN_HEIGHT / 2
+        new_entity.x = random.randint(0, Renderer.SCREEN_WIDTH)
+        new_entity.y = random.randint(0, Renderer.SCREEN_HEIGHT)
         population.append(new_entity)
 
     for i in range(Params.num_food):
@@ -85,31 +88,52 @@ def render():
 def reset_population():
     global population
     for entity in population:
-        entity.x = Renderer.SCREEN_WIDTH / 2
-        entity.y = Renderer.SCREEN_HEIGHT / 2
+        entity.x = random.randint(0, Renderer.SCREEN_WIDTH)
+        entity.y = random.randint(0, Renderer.SCREEN_HEIGHT)
         entity.fitness = 0
 
 def tick():
     global population
     global all_food
 
+    global lowest_output
+    global highest_output
+
+    cur_ent = 0
+
     for entity in population:
         get_closest_food(entity)
         inputs = []
 
-        # Inputs are just x / y distances between Entity and Closest Food.
+        closest_food_vector = entity.get_vector_to_closest_food()
+
+        # Inputs are 2 Vectors - 1 is current vector, 2 is required vector to nearest food
         # Can be positive or negative (not math.abs())
-        inputs.append(entity.x + 5 - entity.closest_food.x)
-        inputs.append(entity.y + 5 - entity.closest_food.y)
-        #inputs.append(entity.closest_food.x)
-        #inputs.append(entity.closest_food.y)
+        inputs.append(entity.dx)
+        inputs.append(entity.dy)
+        inputs.append(closest_food_vector[0])
+        inputs.append(closest_food_vector[1])
 
         outputs = entity.brain.update(inputs)
 
-        entity.d_left = outputs[0]
-        entity.d_right = outputs[1]
-        entity.d_up = outputs[2]
-        entity.d_down = outputs[3]
+        if cur_ent == 0:
+            lowest_output = min(outputs)
+            highest_output = max(outputs)
+        else:
+            if min(outputs) < lowest_output:
+                lowest_output = min(outputs)
+
+            if max(outputs) > highest_output:
+                highest_output = max(outputs)
+
+        # Get net angle change from outputs.
+        # Change entity movement vector based on the change
+        left_change = outputs[0] * Params.MAX_ANGLE_CHANGE
+        right_change = outputs[1] * Params.MAX_ANGLE_CHANGE
+
+        net_angle_change = right_change - left_change
+
+        entity.change_angle(net_angle_change)
 
         entity.move()
 
@@ -119,6 +143,15 @@ def tick():
     # Replenish any food that has been eaten
     for i in range(Params.population_size - len(population)):
         all_food.append(Food())
+
+
+def get_avg_fitness():
+    tot_fitness = 0
+    for i in range(len(population)):
+        tot_fitness += population[i].fitness
+
+    return tot_fitness / len(population)
+
 
 def evolve():
     global start_time
@@ -130,8 +163,10 @@ def evolve():
     start_time = time.time()
 
     global population
+    print("Highest Fitness: " + str(population[0].fitness) + " Average Fitness: " + str(get_avg_fitness()))
     population = GenAlg.evolve(population)
     sort_by_fitness()
+
     reset_population()
 
     global all_food
@@ -139,6 +174,10 @@ def evolve():
     for i in range(Params.num_food):
         all_food.append(Food())
 
+    #global lowest_output
+    #global highest_output
+    #print("Lowest" + str(lowest_output))
+    #print("Highest" + str(highest_output))
 
 
 def run():
@@ -154,7 +193,7 @@ def run():
         tick()
         render()
     else:
-        for i in range(10):
+        for j in range(100):
             for i in range(Params.ticks_per_generation):
                 tick()
             evolve()
