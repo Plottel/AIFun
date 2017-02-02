@@ -12,8 +12,8 @@ class Entity:
         return Rect(self.x, self.y, self.size, self.size)
 
     def get_vector_to_closest_food(self):
-        x_offset = self.closest_food.x - (self.x + (self.size / 2))
-        y_offset = self.closest_food.y - (self.y + (self.size / 2))
+        x_offset = (self.closest_food.x + 3) - (self.x + (self.size / 2))
+        y_offset = (self.closest_food.y + 3) - (self.y + (self.size / 2))
 
         vector_length = math.sqrt((x_offset * x_offset) + (y_offset * y_offset))
 
@@ -27,9 +27,7 @@ class Entity:
         else:
             y_vel = y_offset / vector_length
 
-
-
-        return (x_vel, y_vel)
+        self.closest_food_vector = x_vel, y_vel
 
     def change_angle(self, amount_to_change):
         self.heading += amount_to_change
@@ -62,6 +60,7 @@ class Entity:
     def __init__(self):
         self.brain = NeuralNet()
         self.closest_food = None
+        self.closest_food_vector = 0, 0
         self.food_index = 0
         self.ate_food = False
         self.x = 0
@@ -71,9 +70,18 @@ class Entity:
         self.dx = 0
         self.dy = 0
         self.change_angle(0)
-        self.speed = 1.5
+        self.speed = 2
         self.fitness = 0
 
     def render(self, color):
         pygame.draw.rect(Renderer.SCREEN, color, self.rect, 0)
-        pygame.draw.line(Renderer.SCREEN, (255, 0, 0), (self.x, self.y), (self.closest_food.x, self.closest_food.y), 1)
+        #pygame.draw.line(Renderer.SCREEN, (255, 0, 0), (self.x + self.size / 2, self.y + self.size / 2), (self.closest_food.x + 3, self.closest_food.y + 3), 1)
+
+        #start_line = self.x + self.size / 2, self.y + self.size / 2
+        #end_line = self.x + (self.size / 2) + (60 * self.closest_food_vector[0]), self.y + (self.size / 2) + (60 * self.closest_food_vector[1])
+        moving_line_start = self.x + (self.size / 2), self.y + (self.size / 2)
+        moving_line_end = moving_line_start[0] + (20 * self.dx), moving_line_start[1] + (20 * self.dy)
+
+        #pygame.draw.line(Renderer.SCREEN, (0, 255, 0), moving_line_start, moving_line_end, 1)
+
+        #pygame.draw.line(Renderer.SCREEN, (0, 255, 0), start_line, end_line, 1)

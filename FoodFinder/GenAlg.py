@@ -6,19 +6,29 @@ import math
 import Params
 import random
 
-NUM_BEST_CHOSEN = 4
-NUM_BEST_COPIES = 1
+NUM_BEST_CHOSEN = 2
+NUM_BEST_COPIES = 2
 
 
 old_pop = []
 new_pop = []
 total_fitness = 0
+average_fitness = 0
 
 def get_total_fitness():
-    total_fitness = 0
+    global total_fitness
 
     for entity in old_pop:
         total_fitness += entity.fitness
+
+
+def get_avg_fitness():
+    global average_fitness
+    tot_fitness = 0
+    for i in range(len(old_pop)):
+        tot_fitness += old_pop[i].fitness
+
+    average_fitness = tot_fitness / len(old_pop)
 
 
 def sort_entities(entities):
@@ -42,10 +52,10 @@ def sort_entities(entities):
 
 def copy_best():
     global new_pop
-    new_entity = Entity()
 
     for i in range(NUM_BEST_CHOSEN):
         for j in range(NUM_BEST_COPIES):
+            new_entity = Entity()
             new_entity.brain.replace_weights(old_pop[i].brain.get_weights())
             new_pop.append(new_entity)
 
@@ -64,6 +74,8 @@ def get_parent():
     while selection_threshold > cur_selection:
         selection_threshold -= old_pop[cur_selection].fitness
         cur_selection += 1
+
+    #print("Average: " + str(average_fitness) + " Actual: " + str(old_pop[cur_selection - 1].fitness))
 
     return old_pop[cur_selection - 1]
 
@@ -88,11 +100,20 @@ def crossover(mum, dad):
     child_one_weights = []
     child_two_weights = []
 
-    # Randomly select weights from either parent and
-    # attach the corresponding weight to the children.
-    for i in range(dad.brain.get_number_of_weights()):
-        child_one_weights.append(parent_weights[random.randint(0, 1)][i])
-        child_two_weights.append(parent_weights[random.randint(0, 1)][i])
+    # Determine crossover point
+    crossover_point = random.randint(0, mum.brain.get_number_of_weights() - 1)
+
+    # Assign each child a parent to copy weights from.
+    # Copy weights from 0 -> crossover_point
+    for i in range(crossover_point):
+        child_one_weights.append(parent_weights[0][i])
+        child_two_weights.append(parent_weights[1][i])
+
+    # Swap the parent the child copies weights from.
+    # Copy weights from crossover_point -> end of list
+    for i in range(crossover_point, mum.brain.get_number_of_weights()):
+        child_one_weights.append(parent_weights[1][i])
+        child_two_weights.append(parent_weights[0][i])
 
     child_one.brain.replace_weights(child_one_weights)
     child_two.brain.replace_weights(child_two_weights)
@@ -105,7 +126,7 @@ def mutate(entity):
 
     for weight in weights:
         if random.uniform(0, 1) > Params.mutation_rate:
-            weight += 0.3 * random.uniform(-1, 1)
+            weight += Params.mutation_power * random.uniform(-1, 1)
 
     entity.brain.replace_weights(weights)
 
@@ -119,6 +140,9 @@ def evolve(population):
     global total_fitness
     total_fitness = 0
 
+    global average_fitness
+    average_fitness = 0
+
     # Sort old population by fitness
     old_pop = sort_entities(old_pop)
 
@@ -126,6 +150,7 @@ def evolve(population):
     old_pop.pop(len(old_pop) - 1)
 
     get_total_fitness()
+    #get_avg_fitness()
 
     # Add elite entities to new population
     copy_best()

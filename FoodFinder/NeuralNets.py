@@ -3,10 +3,8 @@ import Params
 import math
 
 
-def sigmoid(output):
-    if output < 0:
-        return 1 - 1 / (1 + math.exp(output))
-    return 1 / (1 + math.exp(-output))
+def sigmoid(output, activation_response):
+    return 1 / (1 + math.exp(-output / activation_response))
 
     ###############################################
     ###               NEURON CLASS              ###
@@ -21,12 +19,12 @@ class Neuron:
         # 1 extra weight represents the threshold value.
         # This way allows the threshold to be built into the weights,
         # simplifying the math and allowing the GA to easily manipulate it.
-        for i in range(self.num_inputs + 1):
+        for i in range(self.num_inputs):
             self.input_weights.append(random.uniform(-1, 1))
 
     def __init__(self, num_inputs):
         # Member variables
-        self.num_inputs = num_inputs
+        self.num_inputs = num_inputs + 1
         self.input_weights = []
 
         self.randomise_weights()
@@ -140,10 +138,11 @@ class NeuralNet:
         for layer in self.layers:
             # On all layers except the first hidden layer, outputs become inputs for next layer.
             # Only the first hidden layer will avoid this condition.
-            if layer.num_inputs_per_neuron != self.num_inputs:
+            if layer.num_inputs_per_neuron != Params.num_inputs:
                 inputs = outputs
 
             outputs = []
+            cur_weight = 0
 
             # For each Neuron in the layer.
             for neuron in layer.neurons:
@@ -152,17 +151,19 @@ class NeuralNet:
                 # Last input is the bias and therefore does not have a corresponding input
                 for k in range(neuron.num_inputs - 1):
                     # Calculate the total weighted input.
-                    tot_weighted_input += inputs[k] * neuron.input_weights[k]
+                    tot_weighted_input += inputs[cur_weight] * neuron.input_weights[k]
+                    cur_weight += 1
 
                 # Add in the bias for this Neuron.
                 # Bias is an extra weight with an input value of -1
                 tot_weighted_input += neuron.input_weights[neuron.num_inputs - 1] * Params.bias
 
-                output = sigmoid(tot_weighted_input)
-                format(output, '.5f')
+                output = sigmoid(tot_weighted_input, Params.activation_response)
 
                 # Generate output value by running weighted input through Sigmoid function
                 outputs.append(output)
+
+                cur_weight = 0
 
         return outputs
 

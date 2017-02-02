@@ -79,11 +79,15 @@ def render():
     for f in all_food:
         f.render()
 
-    for i in range(len(population)):
-        if i < 5:
-            population[i].render((255, 0, 0))
-        else:
-            population[i].render((0, 0, 255))
+    for entity in population:
+        entity.render((50 + (entity.fitness * 5), 0, 0))
+
+    #for i in range(len(population)):
+       # if i < 5:
+          #  population[i].render((255, 0, 0))
+       # else:
+           # population[i].render((0, 0, 255))
+
 
 def reset_population():
     global population
@@ -91,6 +95,7 @@ def reset_population():
         entity.x = random.randint(0, Renderer.SCREEN_WIDTH)
         entity.y = random.randint(0, Renderer.SCREEN_HEIGHT)
         entity.fitness = 0
+        entity.heading = 0
 
 def tick():
     global population
@@ -105,26 +110,26 @@ def tick():
         get_closest_food(entity)
         inputs = []
 
-        closest_food_vector = entity.get_vector_to_closest_food()
+        entity.get_vector_to_closest_food()
 
         # Inputs are 2 Vectors - 1 is current vector, 2 is required vector to nearest food
         # Can be positive or negative (not math.abs())
         inputs.append(entity.dx)
         inputs.append(entity.dy)
-        inputs.append(closest_food_vector[0])
-        inputs.append(closest_food_vector[1])
+        inputs.append(entity.closest_food_vector[0])
+        inputs.append(entity.closest_food_vector[1])
 
         outputs = entity.brain.update(inputs)
 
-        if cur_ent == 0:
-            lowest_output = min(outputs)
-            highest_output = max(outputs)
-        else:
-            if min(outputs) < lowest_output:
-                lowest_output = min(outputs)
+        #if cur_ent == 0:
+         #   lowest_output = min(outputs)
+          #  highest_output = max(outputs)
+        #else:
+         #   if min(outputs) < lowest_output:
+          #      lowest_output = min(outputs)
 
-            if max(outputs) > highest_output:
-                highest_output = max(outputs)
+           # if max(outputs) > highest_output:
+            #    highest_output = max(outputs)
 
         # Get net angle change from outputs.
         # Change entity movement vector based on the change
@@ -134,7 +139,6 @@ def tick():
         net_angle_change = right_change - left_change
 
         entity.change_angle(net_angle_change)
-
         entity.move()
 
         if entity.ate_food:
@@ -152,6 +156,14 @@ def get_avg_fitness():
 
     return tot_fitness / len(population)
 
+def get_highest_fitness():
+    highest_fitness = 0
+    for i in range(len(population)):
+        if population[i].fitness > highest_fitness:
+            highest_fitness = population[i].fitness
+
+    return highest_fitness
+
 
 def evolve():
     global start_time
@@ -159,11 +171,10 @@ def evolve():
     global all_food
     global CURRENT_GENERATION
     CURRENT_GENERATION += 1
-    print(str(CURRENT_GENERATION))
     start_time = time.time()
 
     global population
-    print("Highest Fitness: " + str(population[0].fitness) + " Average Fitness: " + str(get_avg_fitness()))
+    print("Gen " + str(CURRENT_GENERATION) + " Highest Fitness: " + str(get_highest_fitness()) + " Average Fitness: " + str(get_avg_fitness()))
     population = GenAlg.evolve(population)
     sort_by_fitness()
 
@@ -174,17 +185,11 @@ def evolve():
     for i in range(Params.num_food):
         all_food.append(Food())
 
-    #global lowest_output
-    #global highest_output
-    #print("Lowest" + str(lowest_output))
-    #print("Highest" + str(highest_output))
-
-
 def run():
     global FAST_FORWARD
 
     if Input.key_typed(pygame.K_s):
-        FAST_FORWARD = True
+        FAST_FORWARD = not FAST_FORWARD
 
     if not FAST_FORWARD:
         if time.time() - start_time > Params.generation_length:
@@ -193,11 +198,8 @@ def run():
         tick()
         render()
     else:
-        for j in range(100):
-            for i in range(Params.ticks_per_generation):
-                tick()
-            evolve()
-
-        FAST_FORWARD = False
+        for i in range(Params.ticks_per_generation):
+            tick()
+        evolve()
 
 
