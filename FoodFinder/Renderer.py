@@ -1,7 +1,7 @@
 import pygame
 
 class Renderer:
-    SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 700, 700
+    SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 500, 500
 
     # This is the surface used as the first argument for most drawing methods
     SCREEN = pygame.display.set_mode(SCREEN_SIZE)

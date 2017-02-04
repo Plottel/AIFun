@@ -6,8 +6,8 @@ import math
 import Params
 import random
 
-NUM_BEST_CHOSEN = 2
-NUM_BEST_COPIES = 2
+NUM_BEST_CHOSEN = 4
+NUM_BEST_COPIES = 1
 
 
 old_pop = []

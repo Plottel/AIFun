@@ -8,6 +8,7 @@ import Input
 from Entity import Entity
 from NeuralNets import NeuralNet
 from Pickups import Food
+from Pickups import Pond
 from Renderer import Renderer
 
 import GenAlg
@@ -16,9 +17,13 @@ FAST_FORWARD = False
 
 start_time = time.time()
 CURRENT_GENERATION = 1
+CURRENT_TICK = 0
+ENTITIES_STILL_ALIVE = True
+NUM_DEAD_ENTITIES = 0
 
 population = []
 all_food = []
+ponds = []
 
 lowest_output = 0
 highest_output = 0
@@ -53,18 +58,68 @@ def init():
         new_entity.y = random.randint(0, Renderer.SCREEN_HEIGHT)
         population.append(new_entity)
 
+    for i in range(Params.num_ponds):
+        ponds.append(Pond())
+
     for i in range(Params.num_food):
-        all_food.append(Food())
+        x = random.randint(0, Renderer.SCREEN_WIDTH)
+        y = random.randint(0, Renderer.SCREEN_HEIGHT)
+
+        # Keep picking random food locations until a valid point is chosen
+        while point_in_pond(x, y):
+            x = random.randint(0, Renderer.SCREEN_WIDTH)
+            y = random.randint(0, Renderer.SCREEN_HEIGHT)
+
+        all_food.append(Food(x, y))
+
+
+
+# Compares the locations of each entity with the passed in entity.
+# Returns whichever entity is closest diagonally.
+def get_closest_entity(entity):
+    result = population[0]
+
+    if result is entity:
+        result = population[1]
+
+    closest_distance = math.pow(math.fabs(entity.rect.centerx - result.rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - result.rect.centery), 2)
+
+    for i in range(Params.population_size):
+        if population[i].alive:
+            temp_distance = math.pow(math.fabs(entity.rect.centerx - population[i].rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - population[i].rect.centery), 2)
+
+            if temp_distance < closest_distance and population[i] is not entity:
+                closest_distance = temp_distance
+                result = population[i]
+
+    entity.closest_entity = result
+
+
+# Compares the locations of each pond with the passed in entity.
+# Returns whichever pond is closest diagonally
+def get_closest_pond(entity):
+    result = ponds[0]
+    closest_distance = math.pow(math.fabs(entity.rect.centerx - result.rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - result.rect.centery), 2)
+
+    for i in range(Params.num_ponds):
+        temp_distance = math.pow(math.fabs(entity.rect.centerx - ponds[i].rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - ponds[i].rect.centery), 2)
+
+        if temp_distance < closest_distance:
+            closest_distance = temp_distance
+            result = ponds[i]
+
+    entity.closest_pond = result
+
 
 # Compares the locations of each food with the passed in entity.
 # Returns whichever food is closest diagonally.
 def get_closest_food(entity):
     result = all_food[0]
     index = 0
-    closest_distance = math.pow(math.fabs(entity.x - result.x), 2) + math.pow(math.fabs(entity.y - result.y), 2)
+    closest_distance = math.pow(math.fabs(entity.rect.centerx - result.rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - result.rect.centery), 2)
 
     for i in range(Params.num_food):
-        temp_distance = math.pow(math.fabs(entity.x - all_food[i].x), 2) + math.pow(math.fabs(entity.y - all_food[i].y), 2)
+        temp_distance = math.pow(math.fabs(entity.rect.centerx - all_food[i].rect.centerx), 2) + math.pow(math.fabs(entity.rect.centery - all_food[i].rect.centery), 2)
 
         if temp_distance < closest_distance:
             closest_distance = temp_distance
@@ -73,14 +128,27 @@ def get_closest_food(entity):
 
     entity.closest_food = result
     entity.food_index = index
-    return result
+
+
+def point_in_pond(x, y):
+    for pond in ponds:
+        if pond.rect.collidepoint(x, y):
+            return True
+
+    return False
+
 
 def render():
+    for p in ponds:
+        p.render()
+
     for f in all_food:
         f.render()
 
     for entity in population:
-        entity.render((50 + (entity.fitness * 5), 0, 0))
+        if entity.alive:
+            red = (entity.quenched / Params.FRAMES_TO_DEHYDRATION) * 255
+            entity.render((255 - red, 0, 0))
 
     #for i in range(len(population)):
        # if i < 5:
@@ -95,7 +163,10 @@ def reset_population():
         entity.x = random.randint(0, Renderer.SCREEN_WIDTH)
         entity.y = random.randint(0, Renderer.SCREEN_HEIGHT)
         entity.fitness = 0
+        entity.fullness = Params.FRAMES_TO_STARVE
+        entity.quenched = Params.FRAMES_TO_DEHYDRATION
         entity.heading = 0
+
 
 def tick():
     global population
@@ -104,45 +175,63 @@ def tick():
     global lowest_output
     global highest_output
 
+    global CURRENT_TICK
+    CURRENT_TICK += 1
+
     cur_ent = 0
 
     for entity in population:
-        get_closest_food(entity)
-        inputs = []
+        if entity.alive:
+            #get_closest_entity(entity)
+            get_closest_food(entity)
+            get_closest_pond(entity)
+            entity.get_vector_to_closest_food()
+            entity.get_vector_to_closest_pond()
+            inputs = []
 
-        entity.get_vector_to_closest_food()
+            # Store Entity position as it's used for many inputs.
+            #center_x = entity.rect.centerx
+            #center_y = entity.rect.centery
 
-        # Inputs are 2 Vectors - 1 is current vector, 2 is required vector to nearest food
-        # Can be positive or negative (not math.abs())
-        inputs.append(entity.dx)
-        inputs.append(entity.dy)
-        inputs.append(entity.closest_food_vector[0])
-        inputs.append(entity.closest_food_vector[1])
+            # Entity vector
+            inputs.append(entity.dx)
+            inputs.append(entity.dy)
+            # Distance to food
+            inputs.append(entity.closest_food_vector[0])
+            inputs.append(entity.closest_food_vector[1])
+            # Distance to pond
+            inputs.append(entity.closest_pond_vector[0])
+            inputs.append(entity.closest_pond_vector[1])
+            # percentage food satisfaction
+            inputs.append(entity.fullness / Params.FRAMES_TO_STARVE)
+            # percentage water satisfaction
+            inputs.append(entity.quenched / Params.FRAMES_TO_DEHYDRATION)
 
-        outputs = entity.brain.update(inputs)
+            outputs = entity.brain.update(inputs)
+            entity.change_angle(outputs[0], outputs[1])
 
-        #if cur_ent == 0:
-         #   lowest_output = min(outputs)
-          #  highest_output = max(outputs)
-        #else:
-         #   if min(outputs) < lowest_output:
-          #      lowest_output = min(outputs)
+            entity.move()
 
-           # if max(outputs) > highest_output:
-            #    highest_output = max(outputs)
+            # If entity died this frame
+            if entity.fullness == 0 or entity.quenched == 0:
+                entity.fitness = CURRENT_TICK
+                entity.alive = False
+                global NUM_DEAD_ENTITIES
+                NUM_DEAD_ENTITIES += 1
+                if NUM_DEAD_ENTITIES == Params.population_size:
+                    global ENTITIES_STILL_ALIVE
+                    ENTITIES_STILL_ALIVE = False
 
-        # Get net angle change from outputs.
-        # Change entity movement vector based on the change
-        left_change = outputs[0] * Params.MAX_ANGLE_CHANGE
-        right_change = outputs[1] * Params.MAX_ANGLE_CHANGE
+            if entity.ate_food:
+                x = random.randint(0, Renderer.SCREEN_WIDTH)
+                y = random.randint(0, Renderer.SCREEN_HEIGHT)
 
-        net_angle_change = right_change - left_change
+                while point_in_pond(x, y):
+                    x = random.randint(0, Renderer.SCREEN_WIDTH)
+                    y = random.randint(0, Renderer.SCREEN_HEIGHT)
 
-        entity.change_angle(net_angle_change)
-        entity.move()
-
-        if entity.ate_food:
-            all_food[entity.food_index] = Food()
+                all_food[entity.food_index].x = x
+                all_food[entity.food_index].y = y
 
     # Replenish any food that has been eaten
     for i in range(Params.population_size - len(population)):
@@ -171,19 +260,28 @@ def evolve():
     global all_food
     global CURRENT_GENERATION
     CURRENT_GENERATION += 1
+    global NUM_DEAD_ENTITIES
+    NUM_DEAD_ENTITIES = 0
+    global ENTITIES_STILL_ALIVE
+    ENTITIES_STILL_ALIVE = True
+
+    global CURRENT_TICK
+    CURRENT_TICK = 0
+
     start_time = time.time()
 
     global population
     print("Gen " + str(CURRENT_GENERATION) + " Highest Fitness: " + str(get_highest_fitness()) + " Average Fitness: " + str(get_avg_fitness()))
     population = GenAlg.evolve(population)
-    sort_by_fitness()
+    #sort_by_fitness()
 
     reset_population()
 
-    global all_food
-    all_food = []
-    for i in range(Params.num_food):
-        all_food.append(Food())
+    #global all_food
+    #all_food = []
+
+    #for i in range(Params.num_food):
+     #   all_food.append(Food())
 
 def run():
     global FAST_FORWARD
@@ -192,13 +290,13 @@ def run():
         FAST_FORWARD = not FAST_FORWARD
 
     if not FAST_FORWARD:
-        if time.time() - start_time > Params.generation_length:
+        if not ENTITIES_STILL_ALIVE:
             evolve()
 
         tick()
         render()
     else:
-        for i in range(Params.ticks_per_generation):
+        while ENTITIES_STILL_ALIVE:
             tick()
         evolve()
 
